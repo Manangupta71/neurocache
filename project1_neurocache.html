@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NeuroCache — Neural Network Memory Architecture Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: #2a2a3f;
+    --accent: #00ffcc;
+    --accent2: #ff6b6b;
+    --accent3: #7b61ff;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --hit: #00ffcc;
+    --miss: #ff6b6b;
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,204,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,204,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: -1px;
+  }
+  .logo span { color: var(--accent); }
+
+  .badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 2px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* Top controls */
+  .controls-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .ctrl-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ctrl-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+  }
+
+  .ctrl-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .ctrl-value {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 3px;
+    background: var(--border);
+    outline: none;
+    margin-top: 8px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  .run-btn {
+    grid-column: span 4;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 16px;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .run-btn:hover { background: var(--accent); color: var(--bg); }
+  .run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .run-btn.running {
+    background: var(--accent3);
+    border-color: var(--accent3);
+    color: white;
+  }
+
+  /* Stat bar */
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin-bottom: 32px;
+  }
+  .stat {
+    background: var(--card);
+    padding: 20px 16px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-lbl { font-size: 10px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; }
+
+  /* Main grid */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+  }
+  .panel-title {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  canvas { width: 100% !important; }
+
+  /* Network visualizer */
+  .network-svg { width: 100%; height: 200px; }
+
+  /* Cache grid */
+  .cache-display {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    gap: 3px;
+    margin-bottom: 16px;
+  }
+  .cache-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--surface);
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  .cache-cell.hit {
+    background: var(--hit);
+    box-shadow: 0 0 6px var(--hit);
+  }
+  .cache-cell.miss {
+    background: var(--miss);
+    box-shadow: 0 0 6px var(--miss);
+  }
+  .cache-cell.active {
+    background: var(--accent3);
+    box-shadow: 0 0 10px var(--accent3);
+    animation: pulse 0.4s ease;
+  }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
+
+  /* Access log */
+  .access-log {
+    height: 140px;
+    overflow-y: auto;
+    font-size: 11px;
+    line-height: 1.8;
+    color: var(--muted);
+  }
+  .access-log::-webkit-scrollbar { width: 4px; }
+  .access-log::-webkit-scrollbar-thumb { background: var(--border); }
+  .log-hit { color: var(--hit); }
+  .log-miss { color: var(--miss); }
+
+  /* Progress bar */
+  .progress-wrap {
+    height: 3px;
+    background: var(--border);
+    margin-top: 12px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  /* Bottom full-width */
+  .full-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 24px;
+    margin-top: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  /* Matrix traversal comparison */
+  .traversal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .traversal-box {
+    border: 1px solid var(--border);
+    padding: 16px;
+  }
+  .traversal-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .matrix-mini {
+    display: grid;
+    gap: 2px;
+    margin-bottom: 10px;
+  }
+  .matrix-row { display: flex; gap: 2px; }
+  .matrix-cell {
+    width: 18px; height: 18px;
+    border-radius: 2px;
+    background: var(--surface);
+    transition: background 0.15s;
+    font-size: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+  }
+  .matrix-cell.active-row { background: var(--accent); color: var(--bg); }
+  .matrix-cell.active-col { background: var(--accent2); color: white; }
+  .perf-bar-wrap { margin-top: 8px; }
+  .perf-bar-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+  .perf-bar-bg { height: 6px; background: var(--border); border-radius: 3px; }
+  .perf-bar-fill { height: 100%; border-radius: 3px; transition: width 1.5s cubic-bezier(0.4,0,0.2,1); }
+
+  footer {
+    text-align: center;
+    padding: 24px 0;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">Neuro<span>Cache</span></div>
+    <div class="badge">ML × Computer Architecture</div>
+  </header>
+
+  <!-- Controls -->
+  <div class="controls-row">
+    <div class="ctrl-card">
+      <div class="ctrl-label">Matrix Size (N×N)</div>
+      <div class="ctrl-value" id="matSizeVal">64</div>
+      <input type="range" id="matSize" min="16" max="256" step="16" value="64"
+        oninput="document.getElementById('matSizeVal').textContent=this.value">
+    </div>
+    <div class="ctrl-card">
+      <div class="ctrl-label">Cache Size (KB)</div>
+      <div class="ctrl-value" id="cacheSizeVal">32</div>
+      <input type="range" id="cacheSize" min="8" max="128" step="8" value="32"
+        oninput="document.getElementById('cacheSizeVal').textContent=this.value">
+    </div>
+    <div class="ctrl-card">
+      <div class="ctrl-label">Cache Line (Bytes)</div>
+      <div class="ctrl-value" id="cacheLineVal">64</div>
+      <input type="range" id="cacheLine" min="16" max="128" step="16" value="64"
+        oninput="document.getElementById('cacheLineVal').textContent=this.value">
+    </div>
+    <div class="ctrl-card">
+      <div class="ctrl-label">Access Pattern</div>
+      <div class="ctrl-value" style="font-size:14px;margin-top:4px;">
+        <select id="accessPattern">
+          <option value="row">Row-Major (C-style)</option>
+          <option value="col">Column-Major (Fortran)</option>
+          <option value="tile">Tiled / Blocked</option>
+          <option value="random">Random</option>
+        </select>
+      </div>
+    </div>
+    <button class="run-btn" id="runBtn" onclick="runSimulation()">▶ SIMULATE INFERENCE PASS</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-bar">
+    <div class="stat">
+      <div class="stat-num" id="statHits" style="color:var(--hit)">—</div>
+      <div class="stat-lbl">Cache Hits</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statMisses" style="color:var(--miss)">—</div>
+      <div class="stat-lbl">Cache Misses</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statHitRate" style="color:var(--accent)">—</div>
+      <div class="stat-lbl">Hit Rate</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statLatency" style="color:var(--accent3)">—</div>
+      <div class="stat-lbl">Est. Latency (ns)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statBW" style="color:var(--accent2)">—</div>
+      <div class="stat-lbl">Memory BW (GB/s)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statFlops" style="color:var(--accent)">—</div>
+      <div class="stat-lbl">GFLOPS/s (eff.)</div>
+    </div>
+  </div>
+
+  <!-- Main Charts -->
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-title">Cache Access Timeline</div>
+      <canvas id="timelineChart" height="200"></canvas>
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Live Cache State (128 lines)</div>
+      <div class="cache-display" id="cacheGrid"></div>
+      <div class="access-log" id="accessLog">
+        <span style="color:var(--muted);font-size:11px;">Run simulation to see memory access log...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Neural Network + Matrix Traversal -->
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-title">Neural Network — Weight Matrix Access</div>
+      <svg class="network-svg" id="networkSvg" viewBox="0 0 480 200"></svg>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Hit Rate vs Matrix Size</div>
+      <canvas id="sizeChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Matrix Traversal Comparison -->
+  <div class="full-panel">
+    <div class="panel-title">Memory Access Pattern — Row-Major vs Column-Major</div>
+    <div class="traversal-grid">
+      <div class="traversal-box">
+        <div class="traversal-title" style="color:var(--accent)">Row-Major (Sequential)</div>
+        <div id="rowMatrix" class="matrix-mini"></div>
+        <div class="perf-bar-wrap">
+          <div class="perf-bar-label"><span>Cache Efficiency</span><span id="rowEff">—</span></div>
+          <div class="perf-bar-bg"><div class="perf-bar-fill" id="rowBar" style="background:var(--accent);width:0%"></div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;">Accesses memory sequentially — each new element is adjacent in memory. High spatial locality → most accesses hit the same cache line.</div>
+      </div>
+      <div class="traversal-box">
+        <div class="traversal-title" style="color:var(--accent2)">Column-Major (Strided)</div>
+        <div id="colMatrix" class="matrix-mini"></div>
+        <div class="perf-bar-wrap">
+          <div class="perf-bar-label"><span>Cache Efficiency</span><span id="colEff">—</span></div>
+          <div class="perf-bar-bg"><div class="perf-bar-fill" id="colBar" style="background:var(--accent2);width:0%"></div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;">Accesses memory with stride N — skips entire rows between accesses. Poor spatial locality → each access likely misses the cache.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bandwidth chart -->
+  <div class="full-panel">
+    <div class="panel-title">Memory Bandwidth Utilization vs Access Pattern</div>
+    <canvas id="bwChart" height="120"></canvas>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Row-Major</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div>Column-Major</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div>Tiled</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f0a500)"></div>Random</div>
+    </div>
+  </div>
+
+  <footer>NEUROCACHE — ML × COMPUTER ARCHITECTURE SIMULATOR</footer>
+</div>
+
+<script>
+// ─── Data & State ──────────────────────────────────────────────────────────
+let timelineChart, sizeChart, bwChart;
+let simRunning = false;
+
+const CACHE_LINE_CELLS = 128; // visual cells
+
+// ─── Build Neural Network SVG ─────────────────────────────────────────────
+function buildNetwork() {
+  const svg = document.getElementById('networkSvg');
+  const layers = [3, 5, 5, 3];
+  const W = 480, H = 200;
+  const nodes = [];
+
+  layers.forEach((count, li) => {
+    const x = 60 + li * (W - 120) / (layers.length - 1);
+    for (let i = 0; i < count; i++) {
+      const y = (H / (count + 1)) * (i + 1);
+      nodes.push({ x, y, li, i });
+    }
+  });
+
+  let html = '';
+  // Edges
+  for (let li = 0; li < layers.length - 1; li++) {
+    const from = nodes.filter(n => n.li === li);
+    const to = nodes.filter(n => n.li === li + 1);
+    from.forEach(f => to.forEach(t => {
+      html += `<line x1="${f.x}" y1="${f.y}" x2="${t.x}" y2="${t.y}" stroke="rgba(123,97,255,0.2)" stroke-width="1" class="nn-edge"/>`;
+    }));
+  }
+  // Nodes
+  nodes.forEach((n, idx) => {
+    const isFirst = n.li === 0, isLast = n.li === layers.length - 1;
+    const col = isFirst ? '#00ffcc' : isLast ? '#ff6b6b' : '#7b61ff';
+    html += `<circle cx="${n.x}" cy="${n.y}" r="10" fill="${col}" fill-opacity="0.15" stroke="${col}" stroke-width="1.5" class="nn-node" data-idx="${idx}"/>`;
+    html += `<circle cx="${n.x}" cy="${n.y}" r="4" fill="${col}" opacity="0.9"/>`;
+  });
+
+  // Labels
+  const labels = ['INPUT', 'HIDDEN-1', 'HIDDEN-2', 'OUTPUT'];
+  layers.forEach((_, li) => {
+    const x = 60 + li * (W - 120) / (layers.length - 1);
+    html += `<text x="${x}" y="195" text-anchor="middle" font-family="Space Mono" font-size="9" fill="rgba(107,107,138,0.8)" letter-spacing="1">${labels[li]}</text>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+// ─── Build Matrix Visualizers ────────────────────────────────────────────
+function buildMatrices() {
+  const N = 8;
+  ['rowMatrix', 'colMatrix'].forEach(id => {
+    const el = document.getElementById(id);
+    let html = '';
+    for (let r = 0; r < N; r++) {
+      html += '<div class="matrix-row">';
+      for (let c = 0; c < N; c++) {
+        html += `<div class="matrix-cell" id="${id}-${r}-${c}">${r*N+c}</div>`;
+      }
+      html += '</div>';
+    }
+    el.innerHTML = html;
+  });
+}
+
+// ─── Cache Simulation Engine ──────────────────────────────────────────────
+function simulateCache(matSize, cacheKB, cacheLineBytes, pattern) {
+  const N = matSize;
+  const cacheBytes = cacheKB => cacheKB * 1024;
+  const totalBytes = N * N * 4; // float32
+  const numLines = Math.floor(cacheBytes(cacheKB) / cacheLineBytes);
+  const wordsPerLine = cacheLineBytes / 4;
+
+  // LRU cache simulation
+  const cache = new Map(); // addr -> lru_timestamp
+  let lruTime = 0;
+  let hits = 0, misses = 0;
+  const timeline = [];
+  const accessLog = [];
+
+  // Generate access sequence
+  const accesses = [];
+  if (pattern === 'row') {
+    for (let r = 0; r < N; r++)
+      for (let c = 0; c < N; c++)
+        accesses.push(r * N + c);
+  } else if (pattern === 'col') {
+    for (let c = 0; c < N; c++)
+      for (let r = 0; r < N; r++)
+        accesses.push(r * N + c);
+  } else if (pattern === 'tile') {
+    const T = Math.max(8, Math.floor(Math.sqrt(numLines * wordsPerLine / 2)));
+    for (let br = 0; br < N; br += T)
+      for (let bc = 0; bc < N; bc += T)
+        for (let r = br; r < Math.min(br+T,N); r++)
+          for (let c = bc; c < Math.min(bc+T,N); c++)
+            accesses.push(r * N + c);
+  } else {
+    // random (sample)
+    for (let i = 0; i < N * N; i++)
+      accesses.push(Math.floor(Math.random() * N * N));
+  }
+
+  const sampleStep = Math.max(1, Math.floor(accesses.length / 200));
+
+  accesses.forEach((addr, idx) => {
+    const lineAddr = Math.floor(addr / wordsPerLine);
+    lruTime++;
+
+    if (cache.has(lineAddr)) {
+      hits++;
+      cache.set(lineAddr, lruTime);
+      if (idx % sampleStep === 0) timeline.push(1);
+    } else {
+      misses++;
+      if (cache.size >= numLines) {
+        // Evict LRU
+        let oldest = Infinity, evictKey;
+        cache.forEach((t, k) => { if (t < oldest) { oldest = t; evictKey = k; }});
+        cache.delete(evictKey);
+      }
+      cache.set(lineAddr, lruTime);
+      if (idx % sampleStep === 0) timeline.push(0);
+    }
+
+    if (accessLog.length < 60 && idx % Math.max(1, Math.floor(accesses.length / 60)) === 0) {
+      accessLog.push({
+        idx, addr,
+        lineAddr,
+        hit: cache.has(lineAddr) && hits > misses ? true : misses > 0
+      });
+    }
+  });
+
+  const hitRate = hits / (hits + misses);
+  // Latency model: hit=4ns, miss=100ns
+  const avgLatency = hitRate * 4 + (1 - hitRate) * 100;
+  // Bandwidth: bytes accessed per ns
+  const totalAccessBytes = accesses.length * 4;
+  const totalTimeNs = accesses.length * avgLatency;
+  const bandwidth = totalAccessBytes / totalTimeNs; // GB/s
+  const flops = (2 * N * N * N) / (totalTimeNs); // GFLOPS (matmul)
+
+  return { hits, misses, hitRate, avgLatency, bandwidth, flops, timeline, accessLog };
+}
+
+// ─── Build Charts ─────────────────────────────────────────────────────────
+function initCharts() {
+  const commonOpts = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6b8a', font: { family: 'Space Mono', size: 10 }}},
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6b8a', font: { family: 'Space Mono', size: 10 }}}
+    }
+  };
+
+  timelineChart = new Chart(document.getElementById('timelineChart'), {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{
+        data: [],
+        backgroundColor: ctx => ctx.raw === 1 ? 'rgba(0,255,204,0.7)' : 'rgba(255,107,107,0.7)',
+        borderWidth: 0,
+        barThickness: 3
+      }]
+    },
+    options: {
+      ...commonOpts,
+      scales: {
+        ...commonOpts.scales,
+        y: { ...commonOpts.scales.y, min: -0.1, max: 1.1, ticks: { ...commonOpts.scales.y.ticks, callback: v => v === 1 ? 'HIT' : v === 0 ? 'MISS' : '' }}
+      },
+      animation: { duration: 300 }
+    }
+  });
+
+  sizeChart = new Chart(document.getElementById('sizeChart'), {
+    type: 'line',
+    data: {
+      labels: [16,32,64,128,256],
+      datasets: [
+        { label: 'Row-Major', data: [], borderColor: '#00ffcc', backgroundColor: 'rgba(0,255,204,0.1)', tension: 0.4, fill: true, pointRadius: 4 },
+        { label: 'Col-Major', data: [], borderColor: '#ff6b6b', backgroundColor: 'rgba(255,107,107,0.1)', tension: 0.4, fill: true, pointRadius: 4 },
+        { label: 'Tiled', data: [], borderColor: '#7b61ff', backgroundColor: 'rgba(123,97,255,0.1)', tension: 0.4, fill: true, pointRadius: 4 },
+      ]
+    },
+    options: {
+      ...commonOpts,
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: '#6b6b8a', font: { family: 'Space Mono', size: 10 }, boxWidth: 12 }
+        }
+      },
+      scales: { ...commonOpts.scales, y: { ...commonOpts.scales.y, min: 0, max: 1, ticks: { ...commonOpts.scales.y.ticks, callback: v => (v*100).toFixed(0)+'%' }}}
+    }
+  });
+
+  bwChart = new Chart(document.getElementById('bwChart'), {
+    type: 'bar',
+    data: {
+      labels: ['16', '32', '64', '128', '256'],
+      datasets: [
+        { label: 'Row-Major', data: [], backgroundColor: 'rgba(0,255,204,0.7)', borderWidth: 0 },
+        { label: 'Col-Major', data: [], backgroundColor: 'rgba(255,107,107,0.7)', borderWidth: 0 },
+        { label: 'Tiled', data: [], backgroundColor: 'rgba(123,97,255,0.7)', borderWidth: 0 },
+      ]
+    },
+    options: {
+      ...commonOpts,
+      plugins: { legend: { display: true, labels: { color: '#6b6b8a', font: { family: 'Space Mono', size: 10 }, boxWidth: 12 }}}
+    }
+  });
+}
+
+// ─── Animate Cache Grid ───────────────────────────────────────────────────
+function buildCacheGrid() {
+  const grid = document.getElementById('cacheGrid');
+  grid.innerHTML = Array.from({length: CACHE_LINE_CELLS}, (_, i) =>
+    `<div class="cache-cell" id="cc${i}"></div>`
+  ).join('');
+}
+
+async function animateCacheGrid(timeline) {
+  const cells = CACHE_LINE_CELLS;
+  const step = Math.max(1, Math.floor(timeline.length / cells));
+  let ptr = 0;
+
+  for (let i = 0; i < cells && i * step < timeline.length; i++) {
+    const isHit = timeline[i * step] === 1;
+    const cell = document.getElementById(`cc${i}`);
+    if (cell) {
+      cell.className = 'cache-cell active';
+      await new Promise(r => setTimeout(r, 12));
+      cell.className = `cache-cell ${isHit ? 'hit' : 'miss'}`;
+    }
+    document.getElementById('progressBar').style.width = `${(i / cells) * 100}%`;
+  }
+  document.getElementById('progressBar').style.width = '100%';
+}
+
+// ─── Animate Matrix ───────────────────────────────────────────────────────
+async function animateMatrices(rowHitRate, colHitRate) {
+  const N = 8;
+  // Row-major animation
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      const cell = document.getElementById(`rowMatrix-${r}-${c}`);
+      if (cell) {
+        cell.className = 'matrix-cell active-row';
+        await new Promise(res => setTimeout(res, 20));
+      }
+    }
+  }
+  document.getElementById('rowEff').textContent = (rowHitRate * 100).toFixed(1) + '%';
+  document.getElementById('rowBar').style.width = (rowHitRate * 100) + '%';
+
+  // Col-major animation
+  for (let c = 0; c < N; c++) {
+    for (let r = 0; r < N; r++) {
+      const cell = document.getElementById(`colMatrix-${r}-${c}`);
+      if (cell) {
+        cell.className = 'matrix-cell active-col';
+        await new Promise(res => setTimeout(res, 20));
+      }
+    }
+  }
+  document.getElementById('colEff').textContent = (colHitRate * 100).toFixed(1) + '%';
+  document.getElementById('colBar').style.width = (colHitRate * 100) + '%';
+}
+
+// ─── Animate NN ───────────────────────────────────────────────────────────
+function animateNetwork() {
+  const edges = document.querySelectorAll('.nn-edge');
+  const nodes = document.querySelectorAll('.nn-node');
+  let i = 0;
+  const interval = setInterval(() => {
+    edges.forEach(e => e.style.stroke = 'rgba(123,97,255,0.2)');
+    if (i < edges.length) {
+      edges[i].style.stroke = '#00ffcc';
+      edges[i].style.strokeWidth = '2';
+    }
+    i++;
+    if (i > edges.length + 5) clearInterval(interval);
+  }, 30);
+}
+
+// ─── Main Simulation ──────────────────────────────────────────────────────
+async function runSimulation() {
+  if (simRunning) return;
+  simRunning = true;
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.classList.add('running');
+  btn.textContent = '⟳ SIMULATING...';
+
+  const matSize = parseInt(document.getElementById('matSize').value);
+  const cacheKB = parseInt(document.getElementById('cacheSize').value);
+  const cacheLineBytes = parseInt(document.getElementById('cacheLine').value);
+  const pattern = document.getElementById('accessPattern').value;
+
+  // Run main simulation
+  const res = simulateCache(matSize, cacheKB, cacheLineBytes, pattern);
+
+  // Update stats
+  document.getElementById('statHits').textContent = res.hits.toLocaleString();
+  document.getElementById('statMisses').textContent = res.misses.toLocaleString();
+  document.getElementById('statHitRate').textContent = (res.hitRate * 100).toFixed(1) + '%';
+  document.getElementById('statLatency').textContent = res.avgLatency.toFixed(1);
+  document.getElementById('statBW').textContent = res.bandwidth.toFixed(2);
+  document.getElementById('statFlops').textContent = res.flops.toFixed(3);
+
+  // Timeline chart
+  const labels = res.timeline.map((_, i) => i);
+  timelineChart.data.labels = labels;
+  timelineChart.data.datasets[0].data = res.timeline;
+  timelineChart.update();
+
+  // Access log
+  const log = document.getElementById('accessLog');
+  log.innerHTML = res.timeline.slice(0, 80).map((v, i) =>
+    `<span class="${v === 1 ? 'log-hit' : 'log-miss'}">[${String(i).padStart(4,'0')}] ${v === 1 ? '✓ HIT ' : '✗ MISS'} — addr 0x${(i * 64).toString(16).padStart(6,'0').toUpperCase()}</span>\n`
+  ).join('');
+  log.scrollTop = log.scrollHeight;
+
+  // Size vs hit rate
+  const sizes = [16, 32, 64, 128, 256];
+  const rowRates = sizes.map(s => simulateCache(s, cacheKB, cacheLineBytes, 'row').hitRate);
+  const colRates = sizes.map(s => simulateCache(s, cacheKB, cacheLineBytes, 'col').hitRate);
+  const tileRates = sizes.map(s => simulateCache(s, cacheKB, cacheLineBytes, 'tile').hitRate);
+  sizeChart.data.datasets[0].data = rowRates;
+  sizeChart.data.datasets[1].data = colRates;
+  sizeChart.data.datasets[2].data = tileRates;
+  sizeChart.update();
+
+  // BW chart
+  const rowBW = sizes.map(s => simulateCache(s, cacheKB, cacheLineBytes, 'row').bandwidth);
+  const colBW = sizes.map(s => simulateCache(s, cacheKB, cacheLineBytes, 'col').bandwidth);
+  const tileBW = sizes.map(s => simulateCache(s, cacheKB, cacheLineBytes, 'tile').bandwidth);
+  bwChart.data.datasets[0].data = rowBW;
+  bwChart.data.datasets[1].data = colBW;
+  bwChart.data.datasets[2].data = tileBW;
+  bwChart.update();
+
+  // Animate
+  buildCacheGrid();
+  await animateCacheGrid(res.timeline);
+  animateNetwork();
+
+  const rowHR = simulateCache(matSize, cacheKB, cacheLineBytes, 'row').hitRate;
+  const colHR = simulateCache(matSize, cacheKB, cacheLineBytes, 'col').hitRate;
+  buildMatrices();
+  await animateMatrices(rowHR, colHR);
+
+  btn.disabled = false;
+  btn.classList.remove('running');
+  btn.textContent = '▶ SIMULATE INFERENCE PASS';
+  simRunning = false;
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+buildNetwork();
+buildMatrices();
+buildCacheGrid();
+initCharts();
+</script>
+</body>
+</html>
