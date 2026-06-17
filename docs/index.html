@@ -33,7 +33,6 @@ body{
   overflow-x:hidden;
 }
 
-/* scanline overlay */
 body::after{
   content:'';
   position:fixed;inset:0;
@@ -43,12 +42,12 @@ body::after{
 
 .wrap{max-width:1300px;margin:0 auto;padding:0 28px 60px}
 
-/* ── HEADER ── */
 header{
   display:flex;align-items:center;justify-content:space-between;
   padding:28px 0 32px;
   border-bottom:1px solid var(--border);
   margin-bottom:36px;
+  flex-wrap:wrap;gap:14px;
 }
 .logo{
   font-family:var(--mono);font-weight:700;font-size:20px;
@@ -58,7 +57,7 @@ header{
 .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
 .logo em{color:var(--cyan);font-style:normal}
 .stack-badge{
-  display:flex;gap:8px;align-items:center;
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
   font-size:10px;letter-spacing:0.12em;color:var(--muted);
 }
 .tag{
@@ -66,9 +65,13 @@ header{
   color:var(--muted);border-radius:2px;
 }
 .tag.py{color:var(--amber);border-color:rgba(245,158,11,0.3)}
-.tag.np{color:var(--purple);border-color:rgba(139,92,246,0.3)}
+.gh-link{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;color:var(--cyan);text-decoration:none;
+  padding:6px 12px;border:1px solid rgba(0,229,204,.3);border-radius:2px;
+}
+.gh-link:hover{background:rgba(0,229,204,.08)}
 
-/* ── CONTROLS ── */
 .controls{
   display:grid;
   grid-template-columns:repeat(4,1fr) auto;
@@ -118,127 +121,62 @@ select option{background:var(--bg2)}
   cursor:pointer;
   transition:all .25s;
   white-space:nowrap;
-  position:relative;overflow:hidden;
 }
-.run-btn::before{
-  content:'';position:absolute;inset:0;
-  background:var(--cyan);opacity:0;
-  transition:opacity .25s;
-}
-.run-btn:hover::before{opacity:.08}
-.run-btn:active::before{opacity:.15}
+.run-btn:hover{background:rgba(0,229,204,.08)}
 .run-btn:disabled{opacity:.4;cursor:not-allowed}
-.run-btn.running{
-  border-color:var(--purple);color:var(--purple);
-  animation:runpulse 1s infinite;
-}
-@keyframes runpulse{0%,100%{opacity:1}50%{opacity:.6}}
+.run-btn.running{border-color:var(--purple);color:var(--purple)}
 
-/* ── PYTHON BADGE ── */
-.py-notice{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 16px;
-  background:rgba(245,158,11,0.06);
-  border:1px solid rgba(245,158,11,0.2);
-  border-radius:2px;
-  font-size:10px;color:var(--amber);
-  letter-spacing:0.1em;
-  margin-bottom:28px;
-}
-.py-notice code{
-  font-family:var(--mono);font-size:10px;
-  background:rgba(245,158,11,0.12);
-  padding:1px 6px;
-  border-radius:2px;
-}
-
-/* ── STATS BAR ── */
 .stats{
   display:grid;grid-template-columns:repeat(6,1fr);
   gap:1px;background:var(--border);
   margin-bottom:28px;
 }
-.stat{
-  background:var(--card);
-  padding:20px 18px;
-}
-.stat-n{
-  font-size:26px;font-weight:700;line-height:1;margin-bottom:6px;
-}
+.stat{background:var(--card);padding:20px 18px}
+.stat-n{font-size:26px;font-weight:700;line-height:1;margin-bottom:6px}
 .stat-l{font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted)}
 
-/* ── MISS TYPE BAR ── */
 .miss-breakdown{
   display:flex;gap:0;height:6px;margin-bottom:28px;
   background:var(--border);overflow:hidden;
 }
 .miss-seg{height:100%;transition:width 1s ease}
 
-/* ── MAIN GRID ── */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px}
 
-.panel{
-  background:var(--card);border:1px solid var(--border);
-  padding:22px;
-}
+.panel{background:var(--card);border:1px solid var(--border);padding:22px}
 .panel-hd{
   font-size:9px;letter-spacing:0.18em;text-transform:uppercase;
   color:var(--muted);margin-bottom:18px;
   display:flex;align-items:center;justify-content:space-between;
 }
-.panel-hd .src{
-  font-size:9px;color:rgba(245,158,11,0.5);letter-spacing:0.1em;
-}
+.panel-hd .src{font-size:9px;color:rgba(0,229,204,0.5);letter-spacing:0.1em}
 
-/* ── CACHE GRID ── */
-.cache-cells{
-  display:grid;grid-template-columns:repeat(16,1fr);gap:3px;
-  margin-bottom:14px;
-}
-.cc{
-  aspect-ratio:1;background:var(--bg2);border-radius:1px;
-  transition:background .15s,box-shadow .15s;
-}
+.cache-cells{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;margin-bottom:14px}
+.cc{aspect-ratio:1;background:var(--bg2);border-radius:1px;transition:background .15s,box-shadow .15s}
 .cc.hit{background:var(--cyan);box-shadow:0 0 5px rgba(0,229,204,.5)}
 .cc.miss{background:var(--red);box-shadow:0 0 5px rgba(255,79,109,.4)}
 .cc.act{background:var(--purple);animation:cellpulse .3s ease}
 @keyframes cellpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.5)}}
 
-/* ── HEATMAP ── */
-.heatmap{
-  display:grid;grid-template-columns:repeat(16,1fr);gap:2px;
-}
-.hm-cell{
-  aspect-ratio:1;border-radius:1px;
-  transition:background .4s;
-}
+.heatmap{display:grid;grid-template-columns:repeat(16,1fr);gap:2px}
+.hm-cell{aspect-ratio:1;border-radius:1px;transition:background .4s}
 
-/* ── ACCESS LOG ── */
-.log{
-  height:120px;overflow-y:auto;
-  font-size:10px;line-height:2;
-}
+.log{height:120px;overflow-y:auto;font-size:10px;line-height:2}
 .log::-webkit-scrollbar{width:3px}
 .log::-webkit-scrollbar-thumb{background:var(--border2)}
 .lh{color:var(--cyan)}
 .lm{color:var(--red)}
 
-/* ── PROGRESS ── */
 .prog-wrap{height:2px;background:var(--border);margin-top:10px}
 .prog{height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan));width:0%;transition:width .2s}
 
-/* ── TRAVERSAL DEMO ── */
 .traversals{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px}
 .trav{border:1px solid var(--border);padding:16px}
 .trav-title{font-size:10px;letter-spacing:0.14em;margin-bottom:12px}
 .matrix-grid{display:grid;gap:2px;margin-bottom:10px}
 .mrow{display:flex;gap:2px}
-.mc{
-  width:16px;height:16px;background:var(--bg2);border-radius:1px;
-  font-size:7px;display:flex;align-items:center;justify-content:center;
-  color:transparent;transition:background .12s,color .12s;
-}
+.mc{width:16px;height:16px;background:var(--bg2);border-radius:1px;font-size:7px;display:flex;align-items:center;justify-content:center;color:transparent;transition:background .12s,color .12s}
 .mc.ar{background:var(--cyan);color:var(--bg)}
 .mc.ac{background:var(--red);color:white}
 
@@ -247,17 +185,35 @@ select option{background:var(--bg2)}
 .eff-bar-bg{height:4px;background:var(--border)}
 .eff-bar-fill{height:100%;transition:width 1.5s cubic-bezier(.4,0,.2,1)}
 
-/* ── EVICTIONS ── */
 .ev-legend{display:flex;gap:20px;margin-top:10px;flex-wrap:wrap}
 .ev-li{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}
 .ev-dot{width:8px;height:8px;border-radius:50%}
 
-/* ── FOOTER ── */
+.notice{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 16px;
+  background:rgba(0,229,204,0.05);
+  border:1px solid rgba(0,229,204,0.2);
+  border-radius:2px;
+  font-size:10px;color:var(--cyan);
+  letter-spacing:0.06em;
+  margin-bottom:28px;
+}
+.notice code{font-family:var(--mono);font-size:10px;background:rgba(0,229,204,0.1);padding:1px 6px;border-radius:2px}
+
 footer{
   border-top:1px solid var(--border);
   padding:20px 0;
   display:flex;justify-content:space-between;align-items:center;
   font-size:9px;color:var(--muted);letter-spacing:0.12em;
+  flex-wrap:wrap;gap:8px;
+}
+
+@media (max-width:900px){
+  .controls{grid-template-columns:1fr 1fr}
+  .run-btn{grid-column:span 2}
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .grid2,.grid3{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -270,21 +226,18 @@ footer{
       Neuro<em>Cache</em>
     </div>
     <div class="stack-badge">
-      <span class="tag py">Python 3.12</span>
-      <span class="tag np">NumPy</span>
-      <span class="tag">Flask</span>
+      <span class="tag">JS engine</span>
       <span class="tag">Chart.js</span>
+      <a class="gh-link" href="https://github.com/Manangupta71/neurocache" target="_blank" rel="noopener">View source + Python reference impl ↗</a>
     </div>
   </header>
 
-  <div class="py-notice">
-    <span>⚙</span>
-    Simulation engine: <code>simulator.py</code> — LRU cache modelled via
-    <code>numpy</code> access-pattern generation + <code>OrderedDict</code>-based
-    set-associative eviction. Miss classification: compulsory / capacity / conflict.
+  <div class="notice">
+    ⚙ This live demo runs a JS port of the simulation for GitHub Pages (static hosting can't run servers).
+    The full <code>simulator.py</code> + Flask app (numpy LRU cache model, identical logic) is in the repo —
+    clone it to run the Python version locally.
   </div>
 
-  <!-- Controls -->
   <div class="controls">
     <div class="ctrl">
       <div class="ctrl-label">Matrix Size N×N</div>
@@ -307,7 +260,7 @@ footer{
     <div class="ctrl">
       <div class="ctrl-label">Access Pattern</div>
       <select id="pattern" style="margin-top:22px">
-        <option value="row">Row-Major (C/NumPy default)</option>
+        <option value="row">Row-Major (C-style)</option>
         <option value="col">Column-Major (Fortran)</option>
         <option value="tile">Tiled / Blocked</option>
         <option value="zigzag">Zigzag scan</option>
@@ -317,8 +270,7 @@ footer{
     <button class="run-btn" id="runBtn" onclick="runSim()">▶ RUN<br>SIMULATION</button>
   </div>
 
-  <!-- Stats -->
-  <div class="stats" id="stats">
+  <div class="stats">
     <div class="stat"><div class="stat-n" id="s-hits" style="color:var(--cyan)">—</div><div class="stat-l">Cache Hits</div></div>
     <div class="stat"><div class="stat-n" id="s-miss" style="color:var(--red)">—</div><div class="stat-l">Cache Misses</div></div>
     <div class="stat"><div class="stat-n" id="s-hr" style="color:var(--cyan)">—</div><div class="stat-l">Hit Rate</div></div>
@@ -327,49 +279,32 @@ footer{
     <div class="stat"><div class="stat-n" id="s-fl" style="color:var(--blue)">—</div><div class="stat-l">Eff. GFLOPS/s</div></div>
   </div>
 
-  <!-- Miss breakdown bar -->
   <div class="miss-breakdown" id="missBar" title="Miss classification: compulsory / capacity / conflict">
     <div class="miss-seg" id="mb-comp" style="background:var(--amber);width:33%"></div>
     <div class="miss-seg" id="mb-cap"  style="background:var(--red);width:33%"></div>
     <div class="miss-seg" id="mb-conf" style="background:var(--purple);width:34%"></div>
   </div>
 
-  <!-- Row 1: Timeline + Cache Grid -->
   <div class="grid2">
     <div class="panel">
-      <div class="panel-hd">
-        Cache Access Timeline
-        <span class="src">numpy → flask → chart.js</span>
-      </div>
+      <div class="panel-hd">Cache Access Timeline<span class="src">live · in-browser</span></div>
       <canvas id="timelineChart" height="160"></canvas>
       <div class="prog-wrap"><div class="prog" id="prog"></div></div>
     </div>
     <div class="panel">
-      <div class="panel-hd">
-        Live Cache State (128 lines)
-        <span class="src">LRU eviction · python</span>
-      </div>
+      <div class="panel-hd">Live Cache State (128 lines)<span class="src">LRU eviction</span></div>
       <div class="cache-cells" id="cacheGrid"></div>
-      <div class="log" id="log">
-        <span style="color:var(--muted)">Run simulation to see access log…</span>
-      </div>
+      <div class="log" id="log"><span style="color:var(--muted)">Run simulation to see access log…</span></div>
     </div>
   </div>
 
-  <!-- Row 2: Hit Rate sweep + Evictions + Heatmap -->
   <div class="grid3">
     <div class="panel">
-      <div class="panel-hd">
-        Hit Rate vs Matrix Size
-        <span class="src">4 patterns · python sweep</span>
-      </div>
+      <div class="panel-hd">Hit Rate vs Matrix Size<span class="src">4 patterns</span></div>
       <canvas id="sizeChart" height="180"></canvas>
     </div>
     <div class="panel">
-      <div class="panel-hd">
-        Evictions Over Time
-        <span class="src">LRU buckets · python</span>
-      </div>
+      <div class="panel-hd">Evictions Over Time<span class="src">LRU buckets</span></div>
       <canvas id="evChart" height="180"></canvas>
       <div class="ev-legend">
         <div class="ev-li"><div class="ev-dot" style="background:var(--amber)"></div>Compulsory</div>
@@ -378,26 +313,17 @@ footer{
       </div>
     </div>
     <div class="panel">
-      <div class="panel-hd">
-        Access Hotspot Map
-        <span class="src">numpy heatmap · 16×16</span>
-      </div>
-      <div class="heatmap" id="heatmap">
-        <!-- filled by JS -->
-      </div>
+      <div class="panel-hd">Access Hotspot Map<span class="src">16×16</span></div>
+      <div class="heatmap" id="heatmap"></div>
       <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:10px">
         <span>cold</span><span>↔</span><span>hot</span>
       </div>
     </div>
   </div>
 
-  <!-- Row 3: Bandwidth bar + Traversal demo -->
   <div class="grid2">
     <div class="panel">
-      <div class="panel-hd">
-        Bandwidth Utilization (GB/s)
-        <span class="src">all patterns · python sweep</span>
-      </div>
+      <div class="panel-hd">Bandwidth Utilization (GB/s)<span class="src">all patterns</span></div>
       <canvas id="bwChart" height="200"></canvas>
     </div>
     <div class="panel">
@@ -427,12 +353,11 @@ footer{
 
   <footer>
     <span>NEUROCACHE — ML × COMPUTER ARCHITECTURE</span>
-    <span>Python backend · numpy · flask · LRU cache simulation</span>
+    <span>JS engine (this demo) · Python/numpy/Flask reference implementation in repo</span>
   </footer>
 </div>
 
 <script>
-// ── Chart instances ──────────────────────────────────────────────────────
 let tlChart, szChart, bwChart, evChart;
 let simRunning = false;
 
@@ -514,11 +439,12 @@ function initCharts(){
   });
 }
 
-// ── Cache grid ────────────────────────────────────────────────────────────
 function buildCacheGrid(){
   document.getElementById('cacheGrid').innerHTML =
     Array.from({length:128},(_,i)=>`<div class="cc" id="cc${i}"></div>`).join('');
 }
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 async function animateCells(timeline){
   const n = 128;
@@ -534,17 +460,15 @@ async function animateCells(timeline){
   document.getElementById('prog').style.width = '100%';
 }
 
-// ── Heatmap ───────────────────────────────────────────────────────────────
 function buildHeatmap(data){
   const el = document.getElementById('heatmap');
-  el.innerHTML = data.map((v,i)=>{
+  el.innerHTML = data.map((v)=>{
     const r = Math.round(v * 255);
     const g = Math.round(v * 100);
     return `<div class="hm-cell" style="background:rgb(${r},${g},${Math.round((1-v)*180)})"></div>`;
   }).join('');
 }
 
-// ── Traversal demo ────────────────────────────────────────────────────────
 function buildMats(){
   ['rowMat','colMat'].forEach(id => {
     const el = document.getElementById(id);
@@ -572,8 +496,115 @@ async function animateMats(rowHR, colHR){
   document.getElementById('colBar').style.width=(colHR*100)+'%';
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+/* ── Simulation engine (JS port of simulator.py) ── */
+function generateAccesses(N, pattern){
+  const accesses = [];
+  if(pattern === 'row'){
+    for(let i=0;i<N*N;i++) accesses.push(i);
+  } else if(pattern === 'col'){
+    for(let c=0;c<N;c++) for(let r=0;r<N;r++) accesses.push(r*N+c);
+  } else if(pattern === 'tile'){
+    const T = Math.max(8, Math.floor(Math.sqrt(N)));
+    for(let br=0;br<N;br+=T)
+      for(let bc=0;bc<N;bc+=T)
+        for(let r=br;r<Math.min(br+T,N);r++)
+          for(let c=bc;c<Math.min(bc+T,N);c++)
+            accesses.push(r*N+c);
+  } else if(pattern === 'zigzag'){
+    for(let r=0;r<N;r++){
+      const row = r%2===0 ? Array.from({length:N},(_,c)=>c) : Array.from({length:N},(_,c)=>N-1-c);
+      row.forEach(c=>accesses.push(r*N+c));
+    }
+  } else {
+    for(let i=0;i<N*N;i++) accesses.push(Math.floor(Math.random()*N*N));
+  }
+  return accesses;
+}
+
+function classifyMisses(accesses, wordsPerLine, numLines){
+  const lineAddrs = accesses.map(a=>Math.floor(a/wordsPerLine));
+  const unique = new Set(lineAddrs);
+  const compulsory = unique.size;
+  const capacity = Math.max(0, lineAddrs.length - compulsory - Math.max(0, unique.size - numLines)*2);
+  const conflict = Math.max(0, lineAddrs.length - compulsory - capacity);
+  return { compulsory, capacity, conflict };
+}
+
+function runSimulation(N, cacheKB, cacheLineBytes, pattern){
+  const wordsPerLine = cacheLineBytes / 4;
+  const numLines = Math.floor((cacheKB * 1024) / cacheLineBytes);
+  const workingSetKB = (N*N*4)/1024;
+
+  const accesses = generateAccesses(N, pattern);
+  const cache = new Map();
+  let lruTime = 0, hits = 0, misses = 0, evictions = 0;
+
+  const BUCKETS = 20;
+  const bucketSize = Math.max(1, Math.floor(accesses.length/BUCKETS));
+  const evictionBuckets = [];
+  let prevEvictions = 0;
+
+  const SAMPLE = Math.max(1, Math.floor(accesses.length/200));
+  const timeline = [];
+
+  const hmSize = 16;
+  const hm = new Array(hmSize*hmSize).fill(0);
+
+  accesses.forEach((addr, idx)=>{
+    const lineAddr = Math.floor(addr/wordsPerLine);
+    lruTime++;
+    const hmIdx = Math.min(hmSize*hmSize-1, Math.floor(addr*hmSize*hmSize/(N*N)));
+    hm[hmIdx]++;
+
+    if(cache.has(lineAddr)){
+      hits++;
+      cache.delete(lineAddr); cache.set(lineAddr, lruTime);
+      if(idx % SAMPLE === 0) timeline.push(1);
+    } else {
+      misses++;
+      if(cache.size >= numLines){
+        const oldestKey = cache.keys().next().value;
+        cache.delete(oldestKey);
+        evictions++;
+      }
+      cache.set(lineAddr, lruTime);
+      if(idx % SAMPLE === 0) timeline.push(0);
+    }
+
+    if((idx+1) % bucketSize === 0){
+      evictionBuckets.push(evictions - prevEvictions);
+      prevEvictions = evictions;
+    }
+  });
+
+  const total = hits + misses;
+  const hitRate = total ? hits/total : 0;
+  const avgLatency = hitRate*4 + (1-hitRate)*100;
+  const totalTimeNs = total*avgLatency;
+  const bandwidth = totalTimeNs>0 ? (total*4)/totalTimeNs : 0;
+  const effGflops = totalTimeNs>0 ? (2*N**3)/totalTimeNs : 0;
+
+  const { compulsory, capacity, conflict } = classifyMisses(accesses, wordsPerLine, numLines);
+  const hmMax = Math.max(...hm) || 1;
+  const hotspotMap = hm.map(v=>v/hmMax);
+
+  return { hits, misses, hitRate, avgLatency, bandwidth, effGflops, timeline,
+    evictionBuckets, workingSetKB, compulsory, capacity, conflict, hotspotMap };
+}
+
+function sweepMatrixSizes(cacheKB, cacheLineBytes, patterns){
+  const sizes = [16,32,64,128,256];
+  const hitRates = {}, bandwidths = {};
+  patterns.forEach(p=>{ hitRates[p]=[]; bandwidths[p]=[]; });
+  patterns.forEach(p=>{
+    sizes.forEach(s=>{
+      const r = runSimulation(s, cacheKB, cacheLineBytes, p);
+      hitRates[p].push(parseFloat(r.hitRate.toFixed(4)));
+      bandwidths[p].push(parseFloat(r.bandwidth.toFixed(4)));
+    });
+  });
+  return { hitRates, bandwidths, sizes };
+}
 
 async function runSim(){
   if(simRunning) return;
@@ -582,90 +613,64 @@ async function runSim(){
   btn.disabled = true;
   btn.classList.add('running');
   btn.textContent = '⟳ RUNNING…';
+  await sleep(20);
 
-  const payload = {
-    mat_size:  parseInt(document.getElementById('r-mat').value),
-    cache_kb:  parseInt(document.getElementById('r-ck').value),
-    cache_line:parseInt(document.getElementById('r-cl').value),
-    pattern:   document.getElementById('pattern').value,
-  };
+  const matSize   = parseInt(document.getElementById('r-mat').value);
+  const cacheKB   = parseInt(document.getElementById('r-ck').value);
+  const cacheLine = parseInt(document.getElementById('r-cl').value);
+  const pattern   = document.getElementById('pattern').value;
 
-  let data;
-  try {
-    const resp = await fetch('/api/simulate', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
-    data = await resp.json();
-  } catch(e) {
-    alert('Flask server not running. Start it with: python app.py');
-    simRunning = false;
-    btn.disabled = false;
-    btn.classList.remove('running');
-    btn.textContent = '▶ RUN\nSIMULATION';
-    return;
-  }
+  const s  = runSimulation(matSize, cacheKB, cacheLine, pattern);
+  const sw = sweepMatrixSizes(cacheKB, cacheLine, ['row','col','tile','zigzag']);
 
-  const s = data.sim;
-  const sw = data.sweep;
-
-  // Stats
   document.getElementById('s-hits').textContent = s.hits.toLocaleString();
   document.getElementById('s-miss').textContent = s.misses.toLocaleString();
-  document.getElementById('s-hr').textContent   = (s.hit_rate*100).toFixed(1)+'%';
-  document.getElementById('s-lat').textContent  = s.avg_latency_ns.toFixed(1);
-  document.getElementById('s-bw').textContent   = s.bandwidth_gbs.toFixed(2);
-  document.getElementById('s-fl').textContent   = s.eff_gflops.toFixed(3);
+  document.getElementById('s-hr').textContent   = (s.hitRate*100).toFixed(1)+'%';
+  document.getElementById('s-lat').textContent  = s.avgLatency.toFixed(1);
+  document.getElementById('s-bw').textContent   = s.bandwidth.toFixed(2);
+  document.getElementById('s-fl').textContent   = s.effGflops.toFixed(3);
 
-  // Miss breakdown bar
-  const total_m = s.compulsory_misses + s.capacity_misses + s.conflict_misses || 1;
-  document.getElementById('mb-comp').style.width = (s.compulsory_misses/total_m*100)+'%';
-  document.getElementById('mb-cap').style.width  = (s.capacity_misses/total_m*100)+'%';
-  document.getElementById('mb-conf').style.width = (s.conflict_misses/total_m*100)+'%';
+  const totalM = s.compulsory + s.capacity + s.conflict || 1;
+  document.getElementById('mb-comp').style.width = (s.compulsory/totalM*100)+'%';
+  document.getElementById('mb-cap').style.width  = (s.capacity/totalM*100)+'%';
+  document.getElementById('mb-conf').style.width = (s.conflict/totalM*100)+'%';
 
-  // Timeline
   tlChart.data.labels = s.timeline.map((_,i)=>i);
   tlChart.data.datasets[0].data = s.timeline;
   tlChart.update();
 
-  // Hit rate sweep
-  szChart.data.datasets[0].data = sw.hit_rates.row;
-  szChart.data.datasets[1].data = sw.hit_rates.col;
-  szChart.data.datasets[2].data = sw.hit_rates.tile;
-  szChart.data.datasets[3].data = sw.hit_rates.zigzag;
+  szChart.data.datasets[0].data = sw.hitRates.row;
+  szChart.data.datasets[1].data = sw.hitRates.col;
+  szChart.data.datasets[2].data = sw.hitRates.tile;
+  szChart.data.datasets[3].data = sw.hitRates.zigzag;
   szChart.update();
 
-  // BW sweep
   bwChart.data.datasets[0].data = sw.bandwidths.row;
   bwChart.data.datasets[1].data = sw.bandwidths.col;
   bwChart.data.datasets[2].data = sw.bandwidths.tile;
   bwChart.data.datasets[3].data = sw.bandwidths.zigzag;
   bwChart.update();
 
-  // Evictions
-  evChart.data.labels = s.eviction_counts.map((_,i)=>i+1);
-  evChart.data.datasets[0].data = s.eviction_counts;
+  evChart.data.labels = s.evictionBuckets.map((_,i)=>i+1);
+  evChart.data.datasets[0].data = s.evictionBuckets;
   evChart.update();
 
-  // Heatmap
-  buildHeatmap(s.hotspot_map);
+  buildHeatmap(s.hotspotMap);
 
-  // Log
   const logEl = document.getElementById('log');
   logEl.innerHTML = s.timeline.slice(0,80).map((v,i)=>
     `<span class="${v===1?'lh':'lm'}">[${String(i).padStart(4,'0')}] ${v===1?'✓ HIT ':'✗ MISS'} addr 0x${(i*64).toString(16).padStart(6,'0').toUpperCase()}</span>\n`
   ).join('');
   logEl.scrollTop = logEl.scrollHeight;
 
-  // Animations
   buildCacheGrid();
   buildMats();
   await animateCells(s.timeline);
-  await animateMats(
-    sw.hit_rates.row[sw.sizes.indexOf(payload.mat_size)] ?? s.hit_rate,
-    sw.hit_rates.col[sw.sizes.indexOf(payload.mat_size)] ?? s.hit_rate * 0.3
-  );
+
+  const sizeIdx = sw.sizes.indexOf(matSize);
+  const rowHR = sizeIdx>=0 ? sw.hitRates.row[sizeIdx] : s.hitRate;
+  const colHR = sizeIdx>=0 ? sw.hitRates.col[sizeIdx] : s.hitRate*0.3;
+  await animateMats(rowHR, colHR);
 
   btn.disabled = false;
   btn.classList.remove('running');
@@ -673,12 +678,9 @@ async function runSim(){
   simRunning = false;
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────
 buildCacheGrid();
 buildMats();
 initCharts();
-
-// Prefill heatmap with placeholder
 buildHeatmap(Array.from({length:256},(_,i)=>Math.sin(i/16)**2 * 0.5 + 0.1));
 </script>
 </body>
